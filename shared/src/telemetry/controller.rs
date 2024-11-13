@@ -64,10 +64,10 @@ impl TelemetrySender {
             os_type: os_info.os_type().to_string(),
             os_version: os_info.version().to_string(),
             replication_mode: std::env::var("POSTGRESQL_REPLICATION_MODE").ok(),
-            postgres_version: std::str::from_utf8(PG_VERSION)?
+            postgres_version: std::str::from_utf8(PG_VERSION.to_bytes())?
                 .trim_end_matches('\0')
                 .to_owned(),
-            postgres_version_details: std::str::from_utf8(PG_VERSION_STR)?
+            postgres_version_details: std::str::from_utf8(PG_VERSION_STR.to_bytes())?
                 .trim_end_matches('\0')
                 .to_owned(),
         };

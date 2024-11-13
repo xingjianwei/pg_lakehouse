@@ -37,12 +37,12 @@ macro_rules! fallback_warning {
 
 pub fn executor_run(
     query_desc: PgBox<pg_sys::QueryDesc>,
-    direction: pg_sys::ScanDirection,
+    direction: pg_sys::ScanDirection::Type,
     count: u64,
     execute_once: bool,
     prev_hook: fn(
         query_desc: PgBox<pg_sys::QueryDesc>,
-        direction: pg_sys::ScanDirection,
+        direction: pg_sys::ScanDirection::Type,
         count: u64,
         execute_once: bool,
     ) -> HookResult<()>,
@@ -53,7 +53,7 @@ pub fn executor_run(
     let query_type = get_query_type(ps);
 
     if rtable.is_null()
-        || query_desc.operation != pg_sys::CmdType_CMD_SELECT
+        || query_desc.operation != pg_sys::CmdType::CMD_SELECT
         || query_type != QueryType::DataFusion
         // Tech Debt: Find a less hacky way to let COPY go through
         || query.to_lowercase().starts_with("copy")

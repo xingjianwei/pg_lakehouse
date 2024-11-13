@@ -51,7 +51,7 @@ impl fmt::Debug for PgAttribute {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let tuple = unsafe {
             pg_sys::SearchSysCache1(
-                pg_sys::SysCacheIdentifier_TYPEOID as i32,
+                pg_sys::SysCacheIdentifier::TYPEOID as i32,
                 pg_sys::Datum::from(self.oid),
             )
         };

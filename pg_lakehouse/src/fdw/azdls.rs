@@ -294,4 +294,7 @@ impl ForeignDataWrapper<BaseFdwError> for AzdlsFdw {
     fn end_scan(&mut self) -> Result<(), BaseFdwError> {
         self.end_scan_impl()
     }
+    fn explain(&self) -> Result<Option<Vec<(String, String)>>, BaseFdwError> {
+        Ok(Some(vec![]))
+    }
 }
