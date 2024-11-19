@@ -56,7 +56,7 @@ impl BaseFdw for LocalFileFdw {
         _user_mapping_options: HashMap<String, String>,
     ) -> Result<(), ContextError> {
         let object_store = match format {
-            TableFormat::Delta => LocalFileSystem::new_with_prefix(Path::new(url.path()))?,
+            TableFormat::Delta => LocalFileSystem::new(),
             _ => LocalFileSystem::new(),
         };
 

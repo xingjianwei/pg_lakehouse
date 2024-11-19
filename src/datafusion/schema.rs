@@ -17,11 +17,10 @@
 
 use async_std::sync::Mutex;
 use async_std::task;
-use datafusion::catalog::schema::SchemaProvider;
+use datafusion::catalog::SchemaProvider;
 use datafusion::common::DataFusionError;
 use datafusion::datasource::TableProvider;
 use datafusion::error::Result;
-use deltalake::DeltaTable;
 use pgrx::*;
 use std::any::Any;
 use std::collections::hash_map::Entry::{Occupied, Vacant};
@@ -105,7 +104,7 @@ impl LakehouseSchemaProvider {
 
                 let provider = match TableFormat::from(format) {
                     TableFormat::None => task::block_on(create_listing_provider(path, extension))?,
-                    TableFormat::Delta => task::block_on(create_delta_provider(path, extension))?,
+                    TableFormat::Delta => task::block_on(create_listing_provider(path, extension))?,
                 };
 
                 for (index, field) in provider.schema().fields().iter().enumerate() {
@@ -119,15 +118,7 @@ impl LakehouseSchemaProvider {
         };
 
         let provider = match TableFormat::from(format) {
-            TableFormat::Delta => {
-                let mut delta_table = table
-                    .as_any()
-                    .downcast_ref::<DeltaTable>()
-                    .ok_or(CatalogError::DowncastDeltaTable)?
-                    .clone();
-                task::block_on(delta_table.load())?;
-                Arc::new(delta_table) as Arc<dyn TableProvider>
-            }
+            TableFormat::Delta => table.clone(),
             _ => table.clone(),
         };
 

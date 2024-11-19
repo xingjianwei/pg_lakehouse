@@ -16,7 +16,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 use async_std::task;
-use datafusion::catalog::schema::SchemaProvider;
+use datafusion::catalog::SchemaProvider;
 use datafusion::common::arrow::datatypes::DataType;
 use datafusion::common::config::ConfigOptions;
 use datafusion::common::DataFusionError;
@@ -82,21 +82,21 @@ impl ContextProvider for QueryContext {
         &self.options
     }
 
-    fn udfs_names(&self) -> Vec<String> {
+    fn udf_names(&self) -> Vec<String> {
         Vec::new()
     }
 
-    fn udafs_names(&self) -> Vec<String> {
+    fn udaf_names(&self) -> Vec<String> {
         Vec::new()
     }
 
-    fn udwfs_names(&self) -> Vec<String> {
+    fn udwf_names(&self) -> Vec<String> {
         Vec::new()
     }
 }
 
 pub async fn get_table_source(
-    reference: TableReference<'_>,
+    reference: TableReference,
 ) -> Result<Arc<dyn TableSource>, ContextError> {
     let catalog_name = Session::catalog_name()?;
     let schema_name = reference.schema();
@@ -160,9 +160,6 @@ pub enum ContextError {
     DataFusionError(#[from] DataFusionError),
 
     #[error(transparent)]
-    DeltaTableError(#[from] deltalake::DeltaTableError),
-
-    #[error(transparent)]
     FormatError(#[from] FormatError),
 
     #[error(transparent)]
@@ -173,9 +170,6 @@ pub enum ContextError {
 
     #[error(transparent)]
     LogicalPlanError(#[from] LogicalPlanError),
-
-    #[error(transparent)]
-    ObjectStoreError(#[from] deltalake::ObjectStoreError),
 
     #[error(transparent)]
     SchemaError(#[from] SchemaError),

@@ -21,7 +21,6 @@ use datafusion::catalog::CatalogProvider;
 use datafusion::common::DataFusionError;
 use datafusion::prelude::DataFrame;
 use datafusion::sql::TableReference;
-use deltalake::DeltaTableError;
 use pgrx::*;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -174,9 +173,6 @@ pub enum BaseFdwError {
 
     #[error(transparent)]
     DataTypeError(#[from] DataTypeError),
-
-    #[error(transparent)]
-    DeltaTableError(#[from] DeltaTableError),
 
     #[error(transparent)]
     FormatError(#[from] FormatError),

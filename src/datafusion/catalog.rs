@@ -17,7 +17,7 @@
 
 use async_std::sync::RwLock;
 use async_std::task;
-use datafusion::catalog::schema::SchemaProvider;
+use datafusion::catalog::SchemaProvider;
 use datafusion::catalog::{CatalogProvider, CatalogProviderList};
 use datafusion::common::DataFusionError;
 use pgrx::*;
@@ -121,9 +121,6 @@ pub enum CatalogError {
     DataFusionError(#[from] DataFusionError),
 
     #[error(transparent)]
-    DeltaTableError(#[from] deltalake::DeltaTableError),
-
-    #[error(transparent)]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
 
     #[error(transparent)]
@@ -153,6 +150,4 @@ pub enum CatalogError {
     #[error(transparent)]
     Utf8Error(#[from] std::str::Utf8Error),
 
-    #[error("Unexpected error: Failed to downcast table provider to Delta table")]
-    DowncastDeltaTable,
 }
