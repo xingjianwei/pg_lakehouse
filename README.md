@@ -1,148 +1,231 @@
 <h1 align="center">
-  <a href="https://paradedb.com"><img src="docs/logo/readme.svg" alt="ParadeDB" width="368px"></a>
+  <img src="../docs/logo/pg_lakehouse.svg" alt="pg_lakehouse" width="500px">
 <br>
 </h1>
 
-<p align="center">
-  <b>Postgres for Search and Analytics</b> <br />
-</p>
+## Overview
 
-<h3 align="center">
-  <a href="https://paradedb.com">Website</a> &bull;
-  <a href="https://docs.paradedb.com">Docs</a> &bull;
-  <a href="https://join.slack.com/t/paradedbcommunity/shared_invite/zt-217mordsh-ielS6BiZf7VW3rqKBFgAlQ">Community</a> &bull;
-  <a href="https://blog.paradedb.com">Blog</a> &bull;
-  <a href="https://docs.paradedb.com/changelog/">Changelog</a>
-</h3>
+`pg_lakehouse` is an extension that transforms Postgres into an analytical query engine over object stores like S3 and table formats like Delta Lake. Queries are pushed down to [Apache DataFusion](https://github.com/apache/datafusion), which delivers excellent analytical performance. Combinations of the following object stores, table formats, and file formats are supported.
 
----
+### Object Stores
 
-[![Publish ParadeDB](https://github.com/paradedb/paradedb/actions/workflows/publish-paradedb.yml/badge.svg)](https://github.com/paradedb/paradedb/actions/workflows/publish-paradedb.yml)
-[![Docker Pulls](https://img.shields.io/docker/pulls/paradedb/paradedb)](https://hub.docker.com/r/paradedb/paradedb)
-[![pg_search Deployments](https://img.shields.io/badge/22k-green?label=pg_search%20deployments)](https://github.com/paradedb/paradedb/releases/latest)
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/paradedb)](https://artifacthub.io/packages/search?repo=paradedb)
+- [x] Amazon S3
+- [x] S3-compatible object stores (e.g. MinIO)
+- [x] Azure Blob Storage
+- [x] Azure Data Lake Storage Gen2
+- [x] Google Cloud Storage
+- [x] Local file system
 
-[ParadeDB](https://paradedb.com) is an Elasticsearch alternative built on Postgres. We're modernizing the features of Elasticsearch's product suite, starting with real-time search and analytics.
+...and potentially any service supported by [Apache OpenDAL](https://opendal.apache.org/docs/category/services). See the Development section for instructions on how to [add a service](#adding-a-service).
 
-## Status
+### File Formats
 
-ParadeDB is currently in Public Beta. Star and watch this repository to get notified of updates.
+- [x] Parquet
+- [x] CSV
+- [x] JSON
+- [x] Avro
+- [ ] ORC (coming soon)
 
-### Roadmap
+### Table Formats
 
-- [x] Search
-  - [x] Full-text search with BM25 with [pg_search](https://github.com/paradedb/paradedb/tree/dev/pg_search#overview)
-  - [x] Dense and sparse vector search with [pgvector](https://github.com/pgvector/pgvector#pgvector) & [pgvectorscale](https://github.com/timescale/pgvectorscale#pgvectorscale)
-  - [x] Hybrid search
-- [ ] Analytics
-  - [x] An analytical query engine over any object store or table format with [pg_lakehouse](https://github.com/paradedb/paradedb/tree/dev/pg_lakehouse#overview)
-  - [ ] Column-oriented table access method for fast analytics inside Postgres
-  - [ ] High-volume data/Kafka ingest
-- [x] Self-Hosted ParadeDB
-  - [x] Docker image based on [bitnami/postgresql](https://hub.docker.com/r/bitnami/postgresql) & [deployment instructions](https://docs.paradedb.com/deploy/aws)
-  - [x] Kubernetes Helm chart & [deployment instructions](https://docs.paradedb.com/deploy/helm)
-- [x] Specialized Workloads
-  - [x] Support for geospatial data with [PostGIS](https://github.com/postgis/postgis)
-  - [x] Support for cron jobs with [pg_cron](https://github.com/citusdata/pg_cron)
+- [x] Delta Lake
+- [ ] Apache Iceberg (coming soon)
 
-## Get Started
+`pg_lakehouse` is supported on Postgres 14, 15, and 16. Support for Postgres 12 and 13 is coming soon.
 
-To get started, please visit our [documentation](https://docs.paradedb.com).
+## Motivation
 
-## Deploying ParadeDB
+Today, a vast amount of non-operational data — events, metrics, historical snapshots, vendor data, etc. — is ingested into data lakes like S3. Querying this data by moving it into a cloud data warehouse or operating a new query engine is expensive and time-consuming. The goal of `pg_lakehouse` is to enable this data to be queried directly from Postgres. This eliminates the need for new infrastructure, loss of data freshness, data movement, and non-Postgres dialects of other query engines.
 
-ParadeDB and its extensions are available as commercial software for installation on self-hosted Postgres deployment and via Docker and Kubernetes as standalone images. For more information, including enterprise features and support, please [contact us by email](mailto:sales@paradedb.com).
+`pg_lakehouse` uses the foreign data wrapper (FDW) API to connect to any object store or table format and the executor hook API to push queries to DataFusion. While other FDWs like `aws_s3` have existed in the Postgres extension ecosystem, these FDWs suffer from two limitations:
 
-### Extensions
+1. Lack of support for most object stores, files, and table formats
+2. Too slow over large datasets to be a viable analytical engine
 
-You can find prebuilt binaries for all ParadeDB extensions on Debian 11, Debian 12, Ubuntu 22.04, and Red Hat Enterprise Linux 9 for Postgres 14, 15 and 16 in the [GitHub Releases](https://github.com/paradedb/paradedb/releases/latest). We officially support Postgres 12 and above, and you can compile the extensions for other versions of Postgres by following the instructions in the respective extension's README.
+`pg_lakehouse` differentiates itself by supporting a wide breadth of stores and formats (thanks to [OpenDAL](https://github.com/apache/opendal)) and by being very fast (thanks to [DataFusion](https://github.com/apache/datafusion)).
 
-For official support on non-Debian-based systems, please [contact us by email](mailto:sales@paradedb.com).
+## Getting Started
 
-### Docker Image
-
-To quickly get a ParadeDB instance up and running, simply pull and run the latest Docker image:
-
-```bash
-docker run --name paradedb paradedb/paradedb
-```
-
-This will start a ParadeDB instance with default user `postgres` and password `postgres`. You can then connect to the database using `psql`:
-
-```bash
-docker exec -it paradedb psql -U postgres
-```
-
-To install ParadeDB locally or on-premise, we recommend using our `docker-compose.yml` file. Alternatively, you can pass the appropriate environment variables to the `docker run` command, replacing the <> with your desired values:
-
-```bash
-docker run \
-  --name paradedb \
-  -e POSTGRESQL_USERNAME=<user> \
-  -e POSTGRESQL_PASSWORD=<password> \
-  -e POSTGRESQL_DATABASE=<dbname> \
-  -e POSTGRESQL_POSTGRES_PASSWORD=<superuser_password> \
-  -v paradedb_data:/bitnami/postgresql \
-  -p 5432:5432 \
-  -d \
-  paradedb/paradedb:latest
-```
-
-This will start a ParadeDB instance with non-root user `<user>` and password `<password>`. The `superuser_password` will be associated with superuser `postgres` and is necessary for ParadeDB extensions to install properly.
-
-The `-v` flag enables your ParadeDB data to persist across restarts in a Docker volume named `paradedb_data`. The volume needs to be writable by a user with `uid = 1001`, which is a security requirement of the Bitnami PostgreSQL Docker image. You can do so with:
-
-```bash
-sudo useradd -u 1001 <user>
-sudo chown <user> </path/to/paradedb_data>
-```
-
-You can then connect to the database using `psql`:
-
-```bash
-docker exec -it paradedb psql -U <user> -d <dbname> -p 5432 -W
-```
-
-ParadeDB collects anonymous telemetry to help us understand how many people are using the project. You can opt out of telemetry using configuration variables within Postgres:
+The following example uses `pg_lakehouse` to query an example dataset of 3 million NYC taxi trips from January 2024, hosted in a public S3 bucket provided by ParadeDB.
 
 ```sql
-ALTER SYSTEM SET paradedb.pg_search_telemetry TO 'off';
+CREATE EXTENSION pg_lakehouse;
+CREATE FOREIGN DATA WRAPPER s3_wrapper HANDLER s3_fdw_handler VALIDATOR s3_fdw_validator;
+
+-- Provide S3 credentials
+CREATE SERVER s3_server FOREIGN DATA WRAPPER s3_wrapper
+OPTIONS (region 'us-east-1', allow_anonymous 'true');
+
+-- Create foreign table
+CREATE FOREIGN TABLE trips (
+    "VendorID"              INT,
+    "tpep_pickup_datetime"  TIMESTAMP,
+    "tpep_dropoff_datetime" TIMESTAMP,
+    "passenger_count"       BIGINT,
+    "trip_distance"         DOUBLE PRECISION,
+    "RatecodeID"            DOUBLE PRECISION,
+    "store_and_fwd_flag"    TEXT,
+    "PULocationID"          REAL,
+    "DOLocationID"          REAL,
+    "payment_type"          DOUBLE PRECISION,
+    "fare_amount"           DOUBLE PRECISION,
+    "extra"                 DOUBLE PRECISION,
+    "mta_tax"               DOUBLE PRECISION,
+    "tip_amount"            DOUBLE PRECISION,
+    "tolls_amount"          DOUBLE PRECISION,
+    "improvement_surcharge" DOUBLE PRECISION,
+    "total_amount"          DOUBLE PRECISION
+)
+SERVER s3_server
+OPTIONS (path 's3://paradedb-benchmarks/yellow_tripdata_2024-01.parquet', extension 'parquet');
+
+-- Optional: Pre-establish the S3 connection
+CALL connect_table('trips');
+
+-- Success! Now you can query the remote Parquet file like a regular Postgres table
+SELECT COUNT(*) FROM trips;
+  count
+---------
+ 2964624
+(1 row)
 ```
 
-### Helm Chart
+Note: If `path` points to a directory of partitioned files, it should end in a `/`.
 
-ParadeDB is also available for Kubernetes via our Helm chart. You can find our Helm chart in the [ParadeDB Helm Chart GitHub repository](https://github.com/paradedb/helm-charts) or download it directly from [Artifact Hub](https://artifacthub.io/packages/helm/paradedb/paradedb).
+Note: Column names must be wrapped in double quotes to preserve uppercase letters. This is because DataFusion is case-sensitive and Postgres' foreign table column names must match the foreign table's column names exactly.
 
-### ParadeDB Cloud
+## Shared Preload Libraries
 
-At the moment, ParadeDB is not available as a managed cloud service. If you are interested in a ParadeDB Cloud service, please let us know by joining our [waitlist](https://form.typeform.com/to/jHkLmIzx).
+Because this extension uses Postgres hooks to intercept and push queries down to DataFusion, it is **very important** that it is added to `shared_preload_libraries` inside `postgresql.conf`.
 
-## Support
+```bash
+# Inside postgresql.conf
+shared_preload_libraries = 'pg_lakehouse'
+```
 
-If you're missing a feature or have found a bug, please open a
-[GitHub Issue](https://github.com/paradedb/paradedb/issues/new/choose).
+## Inspecting the Foreign Schema
 
-To get community support, you can:
+The `arrow_schema` function displays the schema of a foreign table. This can help you decide what Postgres types to assign to each column of the foreign table. For instance, an Arrow `Utf8` datatype should map to a Postgres `TEXT`, `VARCHAR`, or `BPCHAR` column. If an incompatible Postgres type is chosen, querying the table will fail.
 
-- Post a question in the [ParadeDB Slack Community](https://join.slack.com/t/paradedbcommunity/shared_invite/zt-217mordsh-ielS6BiZf7VW3rqKBFgAlQ)
-- Ask for help on our [GitHub Discussions](https://github.com/paradedb/paradedb/discussions)
+```sql
+SELECT * FROM arrow_schema(
+  server => 's3_server',
+  path => 's3://paradedb-benchmarks/yellow_tripdata_2024-01.parquet',
+  extension => 'parquet'
+);
+```
 
-If you need commercial support, please [contact the ParadeDB team](mailto:sales@paradedb.com).
+## Connecting to the Foreign Server
 
-## Contributing
+The first query to a foreign server in a new Postgres connection may be slower than subsequent queries. This is partially due to the fact that `pg_lakehouse` must first establish a connection with the foreign server before executing the query. To address this, the
+`connect_table` function can be used to pre-establish a connection to the foreign server.
 
-We welcome community contributions, big or small, and are here to guide you along
-the way. To get started contributing, check our [first timer issues](https://github.com/paradedb/paradedb/labels/good%20first%20issue)
-or message us in the [ParadeDB Community Slack](https://join.slack.com/t/paradedbcommunity/shared_invite/zt-217mordsh-ielS6BiZf7VW3rqKBFgAlQ). Once you contribute, ping us in Slack and we'll send you some ParadeDB swag!
+```sql
+CALL connect_table('trips');
+-- schema.table is also accepted
+CALL connect_table('public.trips');
+```
 
-For more information on how to contribute, please see our
-[Contributing Guide](/CONTRIBUTING.md).
+This function is also useful for verifying that the server and table credentials you've provided are valid. If the connection is
+unsucessful, an error message will be returned.
 
-This project is released with a [Contributor Code of Conduct](/CODE_OF_CONDUCT.md).
-By participating in this project, you agree to follow its terms.
+## Connect an Object Store
 
-Thank you for helping us make ParadeDB better for everyone :heart:.
+To connect your own object store, please refer to the [documentation](https://docs.paradedb.com/analytics/object_stores).
+
+## Types
+
+Some types like `date`, `timestamp`, and `timestamptz` must be handled carefully. Please refer to the [documentation](https://docs.paradedb.com/analytics/schema#datetime-types).
+
+## Development
+
+### Install Rust
+
+To develop the extension, first install Rust via `rustup`.
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+rustup install <version>
+
+rustup default <version>
+```
+
+Note: While it is possible to install Rust via your package manager, we recommend using `rustup` as we've observed inconcistencies with Homebrew's Rust installation on macOS.
+
+Then, install the PostgreSQL version of your choice using your system package manager. Here we provide the commands for the default PostgreSQL version used by this project:
+
+### Install Other Dependencies
+
+Before compiling the extension, you'll need to have the following dependencies installed.
+
+```bash
+# macOS
+brew install make gcc pkg-config openssl
+
+# Ubuntu
+sudo apt-get install -y make gcc pkg-config libssl-dev
+```
+
+### Install Postgres
+
+```bash
+# macOS
+brew install postgresql@16
+
+# Ubuntu
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+sudo apt-get update && sudo apt-get install -y postgresql-16 postgresql-server-dev-16
+```
+
+If you are using Postgres.app to manage your macOS PostgreSQL, you'll need to add the `pg_config` binary to your path before continuing:
+
+```bash
+export PATH="$PATH:/Applications/Postgres.app/Contents/Versions/latest/bin"
+```
+
+### Install pgrx
+
+Then, install and initialize `pgrx`:
+
+```bash
+# Note: Replace --pg16 with your version of Postgres, if different (i.e. --pg15, --pg14, etc.)
+cargo install --locked cargo-pgrx --version 0.11.3
+
+# macOS arm64
+cargo pgrx init --pg16=/opt/homebrew/opt/postgresql@16/bin/pg_config
+
+# macOS amd64
+cargo pgrx init --pg16=/usr/local/opt/postgresql@16/bin/pg_config
+
+# Ubuntu
+cargo pgrx init --pg16=/usr/lib/postgresql/16/bin/pg_config
+```
+
+If you prefer to use a different version of Postgres, update the `--pg` flag accordingly.
+
+Note: While it is possible to develop using pgrx's own Postgres installation(s), via `cargo pgrx init` without specifying a `pg_config` path, we recommend using your system package manager's Postgres as we've observed inconsistent behaviours when using pgrx's.
+
+### Adding a Service
+
+`pg_lakehouse` uses OpenDAL to integrate with various object stores. As of the time of writing, some — but not all — of the object stores supported by OpenDAL have been integrated.
+
+Adding support for a new object store is as straightforward as
+
+1. Adding the service feature to `opendal` in `Cargo.toml`. For instance, S3 requires `services-s3`.
+2. Creating a file in the `fdw/` folder that implements the `BaseFdw` trait. For instance, `fdw/s3.rs` implements the S3 FDW.
+3. Registering the FDW in `fdw/handler.rs`.
+
+### Running Tests
+
+We use `cargo test` as our runner for `pg_lakehouse` tests. Tests are conducted using [testcontainers](https://github.com/testcontainers/testcontainers-rs) to manage testing containers like [LocalStack](https://hub.docker.com/r/localstack/localstack). `testcontainers` will pull any Docker images that it requires to perform the test.
+
+You also need a running Postgres instance to run the tests. The test suite will look for a connection string on the `DATABASE_URL` environment variable. You can set this variable manually, or use `.env` file with contents like this:
+
+```text
+DATABASE_URL=postgres://<username>@<host>:<port>/<database>
+```
 
 ## License
 
-ParadeDB is licensed under the [GNU Affero General Public License v3.0](LICENSE) and as commercial software. For commercial licensing, please contact us at [sales@paradedb.com](mailto:sales@paradedb.com).
+`pg_lakehouse` is licensed under the [GNU Affero General Public License v3.0](../LICENSE) and as commercial software. For commercial licensing, please contact us at [sales@paradedb.com](mailto:sales@paradedb.com).
