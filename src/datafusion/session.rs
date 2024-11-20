@@ -160,7 +160,7 @@ impl Session {
             Self::object_store_registry() as Arc<dyn ObjectStoreRegistry>,
         );
         let runtime_env = RuntimeEnv::new(rn_config)?;
-        let mut context = SessionContext::new_with_config_rt(session_config, Arc::new(runtime_env));
+        let context = SessionContext::new_with_config_rt(session_config, Arc::new(runtime_env));
 
         // Register catalog
         context.register_catalog_list(Arc::new(LakehouseCatalogList::new()));

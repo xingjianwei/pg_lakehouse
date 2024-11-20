@@ -23,7 +23,6 @@ use datafusion::prelude::DataFrame;
 use object_store::local::LocalFileSystem;
 use pgrx::*;
 use std::collections::HashMap;
-use std::path::Path;
 use std::sync::Arc;
 use supabase_wrappers::prelude::*;
 use url::Url;

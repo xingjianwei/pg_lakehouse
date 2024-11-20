@@ -38,8 +38,9 @@ static mut EXTENSION_HOOK: LakehouseHook = LakehouseHook;
 #[pg_guard]
 pub extern "C" fn _PG_init() {
     #[allow(static_mut_refs)]
+    #[allow(deprecated)]
     unsafe {
-        let _hook_ptr: *mut LakehouseHook = &mut EXTENSION_HOOK as *mut _;
+        register_hook(&mut EXTENSION_HOOK)
     };
 
     GUCS.init("pg_lakehouse");

@@ -35,6 +35,7 @@ macro_rules! fallback_warning {
     };
 }
 
+#[allow(deprecated)]
 pub fn executor_run(
     query_desc: PgBox<pg_sys::QueryDesc>,
     direction: pg_sys::ScanDirection::Type,

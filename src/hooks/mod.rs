@@ -14,7 +14,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
-
+#[macro_use]
 mod executor;
 mod explain;
 mod process;
@@ -25,6 +25,7 @@ use std::ffi::CStr;
 
 pub struct LakehouseHook;
 
+#[allow(deprecated)]
 impl hooks::PgHooks for LakehouseHook {
     fn executor_run(
         &mut self,
@@ -43,7 +44,6 @@ impl hooks::PgHooks for LakehouseHook {
             .unwrap_or_else(|err| {
                 panic!("{}", err);
             });
-
         HookResult::new(())
     }
 
