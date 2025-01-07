@@ -20,7 +20,7 @@ pg_test = []
 
 [dependencies]
 anyhow = "1.0.83"
-async-std = { version = "1.12.0", features = ["tokio1", "attributes"] }
+async-std = { version = "1.13.0", features = ["tokio1", "attributes"] }
 chrono = "0.4.34"
 dashmap = "5.5.3"
 datafusion = { version = "37.1.0", features = ["avro"] }

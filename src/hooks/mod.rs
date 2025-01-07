@@ -25,6 +25,7 @@ use std::ffi::CStr;
 
 pub struct LakehouseHook;
 
+#[allow(deprecated)]
 impl hooks::PgHooks for LakehouseHook {
     fn executor_run(
         &mut self,

@@ -24,6 +24,7 @@ use super::explain::*;
 
 #[allow(clippy::type_complexity)]
 #[allow(clippy::too_many_arguments)]
+#[allow(deprecated)]
 pub fn process_utility(
     pstmt: PgBox<pg_sys::PlannedStmt>,
     query_string: &CStr,
