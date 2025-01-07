@@ -35,6 +35,7 @@ pg_module_magic!();
 
 static mut EXTENSION_HOOK: LakehouseHook = LakehouseHook;
 
+#[allow(deprecated)]
 #[pg_guard]
 pub extern "C" fn _PG_init() {
     #[allow(static_mut_refs)]
