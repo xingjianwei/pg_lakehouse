@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+use anyhow::Result;
 use async_std::task;
 use pgrx::*;
 use std::ffi::CStr;
@@ -25,7 +26,7 @@ use super::explain::*;
 #[allow(clippy::type_complexity)]
 #[allow(clippy::too_many_arguments)]
 #[allow(deprecated)]
-pub fn process_utility(
+pub async fn process_utility(
     pstmt: PgBox<pg_sys::PlannedStmt>,
     query_string: &CStr,
     read_only_tree: Option<bool>,
@@ -44,7 +45,7 @@ pub fn process_utility(
         dest: PgBox<pg_sys::DestReceiver>,
         completion_tag: *mut pg_sys::QueryCompletion,
     ) -> HookResult<()>,
-) -> Result<(), ProcessHookError> {
+) -> Result<()> {
     let plan = pstmt.utilityStmt;
     let pg_plan = pstmt.clone().into_pg();
 

@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+use anyhow::Result;
 use async_std::task;
 use datafusion::common::arrow::array::RecordBatch;
 use datafusion::logical_expr::LogicalPlan;
@@ -36,7 +37,7 @@ macro_rules! fallback_warning {
 }
 
 #[allow(deprecated)]
-pub fn executor_run(
+pub async fn executor_run(
     query_desc: PgBox<pg_sys::QueryDesc>,
     direction: pg_sys::ScanDirection::Type,
     count: u64,
@@ -47,7 +48,7 @@ pub fn executor_run(
         count: u64,
         execute_once: bool,
     ) -> HookResult<()>,
-) -> Result<(), ExecutorHookError> {
+) -> Result<()> {
     let ps = query_desc.plannedstmt;
     let rtable = unsafe { (*ps).rtable };
     let query = get_current_query(ps, unsafe { CStr::from_ptr(query_desc.sourceText) })?;

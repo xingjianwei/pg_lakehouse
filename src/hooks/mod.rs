@@ -21,6 +21,7 @@ mod process;
 mod query;
 
 use pgrx::*;
+use async_std::task::block_on;
 use std::ffi::CStr;
 
 pub struct LakehouseHook;
@@ -40,7 +41,7 @@ impl hooks::PgHooks for LakehouseHook {
             execute_once: bool,
         ) -> HookResult<()>,
     ) -> HookResult<()> {
-        executor::executor_run(query_desc, direction, count, execute_once, prev_hook)
+        block_on(executor::executor_run(query_desc, direction, count, execute_once, prev_hook))
             .unwrap_or_else(|err| {
                 panic!("{}", err);
             });
@@ -68,7 +69,7 @@ impl hooks::PgHooks for LakehouseHook {
             completion_tag: *mut pg_sys::QueryCompletion,
         ) -> HookResult<()>,
     ) -> HookResult<()> {
-        process::process_utility(
+        block_on(process::process_utility(
             pstmt,
             query_string,
             read_only_tree,
@@ -78,7 +79,7 @@ impl hooks::PgHooks for LakehouseHook {
             dest,
             completion_tag,
             prev_hook,
-        )
+        ))
         .unwrap_or_else(|err| {
             panic!("{}", err);
         });
