@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout Git Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # By using the docker-compose.dev.yml file, we also test that the build arguments are correct
       - name: Build the ParadeDB Docker Image
