@@ -70,7 +70,7 @@ jobs:
 
       - name: Checkout Git Repository
         if: steps.check_skip.outputs.skip_remaining_steps != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # This checks that the version in Cargo.toml is incremented to the next release. We only run it
       # on PRs to main, which are our release promotion PRs.

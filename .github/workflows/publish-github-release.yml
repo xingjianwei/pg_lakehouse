@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout Git Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set Environment
         id: env
@@ -121,7 +121,7 @@ jobs:
       # We create the GitHub release last in case of failure in previous steps
       - name: Create GitHub Release (prod only)
         if: steps.env.outputs.environment == 'prod'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.version.outputs.version }}
           generate_release_notes: true

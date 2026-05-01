@@ -133,7 +133,7 @@ jobs:
 
     steps:
       - name: Checkout Git Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Debian Dependencies
         if: ${{ matrix.image == 'debian:11-slim' || matrix.image == 'debian:12-slim' || matrix.image == 'ubuntu:22.04' }}
